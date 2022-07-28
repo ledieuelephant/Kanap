@@ -86,7 +86,8 @@ exports.orderProducts = (req, res, next) => {
     }
   ).catch(
     (error) => {
-      return res.status(500).json(new Error(error));
+      res.status(500).json(new Error(error));
+      console.log(req.body.products)
     }
   );
 };
