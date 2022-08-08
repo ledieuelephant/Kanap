@@ -1,5 +1,7 @@
 if (localStorage.getItem("cart") === null) {
     console.log("There is no article")
+    document.getElementById("totalQuantity").innerHTML = "0"
+    document.getElementById("totalPrice").innerHTML = "0"
 }
 else {
     let cartItems = document.getElementById("cart__items")
@@ -11,7 +13,7 @@ else {
         await fetch("http://localhost:3000/api/products/"+product.id)
         .then(res => res.json())
         .then(json => {
-            productsIDS.push(product.id)
+           /*  productsIDS.push(product.id) */
             // Creation des éléments
             let article = document.createElement("article")
             /* IMG */
@@ -105,10 +107,24 @@ else {
                     ...changeItem,
                     qte : e.target.value
                 }
-
                 mycart[mycart.indexOf(changeItem)] = newItem
                 // Je le remplace dans le localstorage
                 localStorage.setItem("cart", JSON.stringify(mycart))
+                // Change totalQte + totalPrice
+                totalQte = 0
+                totalPrice = 0
+                mycart.forEach(product1 => {
+                    fetch("http://localhost:3000/api/products/"+product1.id)
+                    .then(response => response.json())
+                    .then(json1 => {
+                        var product1price = json1.price * parseInt(product1.qte)
+                        totalPrice = totalPrice + product1price
+                        totalQte = totalQte + parseInt(product1.qte)
+                        document.getElementById("totalQuantity").innerHTML = totalQte
+                        document.getElementById("totalPrice").innerHTML = totalPrice
+                    })
+                })
+
             }
         })
     });
@@ -116,6 +132,8 @@ else {
         document.getElementById("totalQuantity").innerHTML = totalQte
         document.getElementById("totalPrice").innerHTML = totalPrice
     }, 1000)
+
+
 
     // verif panier vide (Verif localstorage = alert)
 
@@ -126,86 +144,101 @@ else {
     var email = false;
 
     var nameRGEX = /([A-Z]|[a-z]){2,}\w+/g
+    var firstNameRGEX = /([A-Z]|[a-z]){2,}\w+/g
+    
+    // Verification First Name
+    document.getElementById("firstName").onchange = function(e){
+        if (firstNameRGEX.test(e.target.value) == false) {
+            document.getElementById("firstNameErrorMsg").innerHTML = "Veuillez entrée votre prénom"
+            firstName = false
+        } else {
+            document.getElementById("firstNameErrorMsg").innerHTML = ""
+                firstName = true
+        }
+    }
+
+    // Verification Last Name
+    document.getElementById("lastName").onchange = function(e){
+        if (nameRGEX.test(e.target.value) == false) {
+            document.getElementById("lastNameErrorMsg").innerHTML = "Veuillez entrée votre prénom"
+            lastName = false
+        } else {
+            document.getElementById("lastNameErrorMsg").innerHTML = ""
+            lastName = true
+        }
+    }
+
+    // Verification Address
+    document.getElementById("address").onchange = function(e){
+        if (e.target.value == "") {
+            document.getElementById("addressErrorMsg").innerHTML = "Veuillez entrée votre adresse"
+        } else {
+            document.getElementById("addressErrorMsg").innerHTML = ""
+            address = true
+        }
+    }
+
+    document.getElementById("city").onchange = function(e){
+        if (e.target.value == "") {
+            document.getElementById("cityErrorMsg").innerHTML = "Veuillez entrée votre ville"
+        } else {
+            document.getElementById("cityErrorMsg").innerHTML = ""
+            city = true
+        }
+    }
+
+    document.getElementById("email").onchange = function(e){
+        if (e.target.value == "") {
+            document.getElementById("emailErrorMsg").innerHTML = "Veuillez entrée un email"
+        } 
+        else if (e.target.value.includes("@") === false || e.target.value.includes(".") === false) {
+            document.getElementById("emailErrorMsg").innerHTML = "Veuillez entrée un email"
+        }
+        else {
+            document.getElementById("emailErrorMsg").innerHTML = ""
+            email = true
+        }
+    }
 
     document.getElementById("order").onclick = function(e){ // Verif chiffre nom prenom min 3 caractere
         if (localStorage.getItem("cart") === null) {
             alert("Vous devez avoir un produit dans le panier")
         }
         else {
-            if (nameRGEX.test(document.getElementById("firstName").value) == false) {
-                document.getElementById("firstNameErrorMsg").innerHTML = "Veuillez entrée votre prénom"
-            }
-            else {
-                document.getElementById("firstNameErrorMsg").innerHTML = ""
-                firstName = true
-            }
-            if (nameRGEX.test(document.getElementById("lastName").value) == false) {
-                document.getElementById("lastNameErrorMsg").innerHTML = "Veuillez entrée votre nom"
-            }
-            else {
-                document.getElementById("lastNameErrorMsg").innerHTML = ""
-                lastName = true
-            }
-            if (document.getElementById("address").value === "") {
-                document.getElementById("addressErrorMsg").innerHTML = "Veuillez entrée votre adresse"
-            }
-            else {
-                document.getElementById("addressErrorMsg").innerHTML = ""
-                address = true
-            }
-            if (document.getElementById("city").value === "") {
-                document.getElementById("cityErrorMsg").innerHTML = "Veuillez entrée votre ville"
-            }
-            else {
-                document.getElementById("cityErrorMsg").innerHTML = ""
-                city = true
-            }
-            if (document.getElementById("email").value === "") {
-                document.getElementById("emailErrorMsg").innerHTML = "Veuillez entrée un email"
-            }
-            else if (document.getElementById("email").value.includes("@") === false || document.getElementById("email").value.includes(".") === false) {
-                document.getElementById("emailErrorMsg").innerHTML = "Veuillez entrée un email valide"
-            }
-            else {
-                document.getElementById("emailErrorMsg").innerHTML = ""
-                email = true
-            }
-            if (firstName && lastName) {
-                if (address && city) {
-                    if (email) {
+            if (firstName && lastName && address && city && email) {
+                        e.preventDefault()
+                        var panierFinal = JSON.parse(localStorage.getItem("cart"))
+                        panierFinal.forEach(produit => {
+                            productsIDS.push(produit.id)
+                        })
                         fetch("http://localhost:3000/api/products/order", {
                             method : "POST",
                             headers: {
                                 'Content-Type': 'application/json'
                                 // 'Content-Type': 'application/x-www-form-urlencoded',
                             },
-                            body : {
-                                contact : {
-                                    firstName : document.getElementById("firstName").value,
-                                    lastName : document.getElementById("lastName").value,
-                                    address : document.getElementById("address").value,
-                                    city : document.getElementById("city").value,
-                                    email : document.getElementById("email").value
-                                },
-                                products : productsIDS
-                            }
+                            body : JSON.stringify(
+                                {
+                                    contact : {
+                                        firstName : document.getElementById("firstName").value,
+                                        lastName : document.getElementById("lastName").value,
+                                        address : document.getElementById("address").value,
+                                        city : document.getElementById("city").value,
+                                        email : document.getElementById("email").value
+                                    },
+                                    products : productsIDS
+                                }
+                            )
                         })
                         .then(res => res.json())
                         .then(json => {
-                            console.log(json)
-                            e.preventDefault()
+                            alert("Merci pour votre achat")
+                            localStorage.removeItem("cart")
+                            document.location.href = `./confirmation.html?orderID=${json.orderId}`
                         })
                     }
-                    else {
-                        console.log("Erreur")
-                    }
-                }
-                else {
-                    console.log("Erreur")
-                }
-            }
             else {
-                console.log("Erreur")
+                console.log("Erreur 1")
             }
         }
     }

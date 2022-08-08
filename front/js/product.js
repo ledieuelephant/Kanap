@@ -25,7 +25,7 @@ addCart.onclick = function(){
     .then(res => res.json())
     .then(json => {
         var item = {
-            productId : json._id,
+            id : json._id,
             color : document.getElementById("colors").value,
             qte : document.getElementById("quantity").value
         }
@@ -37,6 +37,7 @@ addCart.onclick = function(){
         }
         oldJSON.push(item)
         localStorage.setItem("cart", JSON.stringify(oldJSON))
+        alert("Vous avez ajouté un article au panier")
     })
 
     if (document.getElementById("colors").value === "") {
