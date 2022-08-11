@@ -21,30 +21,31 @@ fetch("http://localhost:3000/api/products/"+id)
 
 let addCart = document.getElementById("addToCart")
 addCart.onclick = function(){
-    fetch("http://localhost:3000/api/products/"+id)
-    .then(res => res.json())
-    .then(json => {
-        var item = {
-            id : json._id,
-            color : document.getElementById("colors").value,
-            qte : document.getElementById("quantity").value
-        }
-        var old = localStorage.getItem("cart")
-        if (old === null) {
-            var oldJSON = []
-        } else {
-            var oldJSON = JSON.parse(old)
-        }
-        oldJSON.push(item)
-        localStorage.setItem("cart", JSON.stringify(oldJSON))
-        alert("Vous avez ajouté un article au panier")
-    })
-
     if (document.getElementById("colors").value === "") {
         alert("Veuillez choisir une couleur")
     }
-    if (document.getElementById("quantity").value == 0) {
+    else if (document.getElementById("quantity").value == 0) {
         alert("Veuillez sélectionner un nombre d'article")
+    }
+    else {
+        fetch("http://localhost:3000/api/products/"+id)
+        .then(res => res.json())
+        .then(json => {
+            var item = {
+                id : json._id,
+                color : document.getElementById("colors").value,
+                qte : document.getElementById("quantity").value
+            }
+            var old = localStorage.getItem("cart")
+            if (old === null) {
+                var oldJSON = []
+            } else {
+                var oldJSON = JSON.parse(old)
+            }
+            oldJSON.push(item)
+            localStorage.setItem("cart", JSON.stringify(oldJSON))
+            alert("Vous avez ajouté un article au panier")
+        })
     }
 }
 
